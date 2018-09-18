@@ -11,8 +11,6 @@
 #include <amqp.h>
 #include <amqp_tcp_socket.h>
 
-#include <ldap.h>
-
 #include "ht.h"
 
 #if 1

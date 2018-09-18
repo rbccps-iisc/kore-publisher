@@ -1,0 +1,6 @@
+*.o
+.flavor
+.objs
+kore-publisher.so
+assets.h
+cert

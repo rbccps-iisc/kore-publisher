@@ -1,0 +1,5 @@
+wrk.method = "POST"
+wrk.body = "xxxxxxxxxxxxxxxxxxxxx"
+wrk.headers["id"] = "guest"
+wrk.headers["apikey"] = "guest"
+wrk.headers["topic"] = "data"

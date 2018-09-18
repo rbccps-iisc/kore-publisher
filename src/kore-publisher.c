@@ -72,7 +72,7 @@ ep_publish (struct http_request *req)
 
 	if (http_request_header(req, "message", &message) != KORE_RESULT_OK)
 	{
-		if (!(message = req->http_body->data))	
+		if (!(message = (char *)req->http_body->data))	
 			bad_request();
 	}
 
@@ -86,6 +86,8 @@ ep_publish (struct http_request *req)
 	{
 		dprintf("---, got 1\n");
 		connection = c->value;
+		/* TODO if connection->amqp_connection is closed, then:
+			 goto reconnect */
 	}
 	else
 	{

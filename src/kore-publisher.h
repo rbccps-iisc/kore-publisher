@@ -2,6 +2,9 @@
 #include <stdbool.h>
 #include <unistd.h>
 
+#include <bsd/stdlib.h>
+#include <bsd/string.h>
+
 #include <string.h>
 #include <pthread.h>
 

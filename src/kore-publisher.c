@@ -37,6 +37,8 @@ ep_publish (struct http_request *req)
 	const char *topic;
 	const char *message;
 
+	amqp_basic_properties_t props;
+
 	char id_apikey[128];
 
 	amqp_socket_t 		*socket;
@@ -144,6 +146,8 @@ reconnect:
 		ht_insert (hash_table, id_apikey, connection);
 	}
 
+	props.user_id = amqp_cstring_bytes(id);
+
 	pthread_mutex_lock(&connection->mutex);
 	if (AMQP_STATUS_OK != amqp_basic_publish (	
 				*(connection->amqp_connection),
@@ -152,7 +156,7 @@ reconnect:
                	 		amqp_cstring_bytes(topic),
 				0,
 				0,
-				NULL,
+				&props,
                			amqp_cstring_bytes(message))
 	)
 	{

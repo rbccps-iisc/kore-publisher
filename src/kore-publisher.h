@@ -22,6 +22,8 @@
 	#define dprintf(...) printf(__VA_ARGS__)
 #endif
 
+int init (int state);
+
 #define forbidden() {						\
 	http_response(req, 403, NULL,0); 			\
 	dprintf("403 LINE = %d\n",__LINE__);			\

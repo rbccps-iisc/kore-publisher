@@ -101,11 +101,14 @@ ep_publish (struct http_request *req)
 		connection->amqp_connection = malloc(sizeof(amqp_connection_state_t));
 		if (connection->amqp_connection == NULL)
 		{
+			free(connection);
 			internal_error();
 		}
 
 		if (pthread_mutex_init(&connection->mutex,0) != 0)
 		{
+			free(connection->amqp_connection);
+			free(connection);
 			internal_error();
 		}
 
@@ -115,12 +118,24 @@ reconnect:
 
 		if (socket == NULL)
 		{
-			dprintf("Got socket null\n");
+			amqp_channel_close	(*(connection->amqp_connection), 1, AMQP_REPLY_SUCCESS);
+			amqp_connection_close	(*(connection->amqp_connection), AMQP_REPLY_SUCCESS);
+			amqp_destroy_connection	(*(connection->amqp_connection));
+
+			free(connection->amqp_connection);
+			free(connection);
 			internal_error();
 		}
 
 		if (amqp_socket_open(socket, "127.0.0.1", 5672)) {
 			dprintf("open failed \n");
+
+			amqp_channel_close	(*(connection->amqp_connection), 1, AMQP_REPLY_SUCCESS);
+			amqp_connection_close	(*(connection->amqp_connection), AMQP_REPLY_SUCCESS);
+			amqp_destroy_connection	(*(connection->amqp_connection));
+
+			free(connection->amqp_connection);
+			free(connection);
 			internal_error();
 		}
 

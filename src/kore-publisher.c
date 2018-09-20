@@ -55,9 +55,7 @@ ep_publish (struct http_request *req)
 	dprintf("%d\n",http_request_header(req, "topic", &topic)); 
 	dprintf("%d\n",http_request_header(req, "message", &message)); 
 
-	if (KORE_RESULT_OK != http_request_header(req, "id", &id) 
-				||
-	    KORE_RESULT_OK != http_request_header(req, "apikey", &apikey)
+	if ( KORE_RESULT_OK != http_request_header(req, "apikey", &apikey)
 				||
 	    KORE_RESULT_OK != http_request_header(req, "to", &exchange)
 				||
@@ -65,6 +63,14 @@ ep_publish (struct http_request *req)
 	)
 	{
 		bad_request();
+	}
+
+	if (http_request_header(req, "id", &id) != KORE_RESULT_OK)
+	{
+		if (http_request_header(req, "X-Consumer-Username", &id) != KORE_RESULT_OK)
+		{
+			bad_request();
+		}
 	}
 
 	if (http_request_header(req, "message", &message) != KORE_RESULT_OK)
@@ -123,7 +129,7 @@ reconnect:
 			internal_error();
 		}
 
-		if (amqp_socket_open(socket, "127.0.0.1", 5672)) {
+		if (amqp_socket_open(socket, "broker", 5672)) {
 			dprintf("open failed \n");
 
 			amqp_channel_close	(*(connection->amqp_connection), 1, AMQP_REPLY_SUCCESS);

@@ -46,15 +46,13 @@ void ht_insert (ht *h, const char *key, void *value)
 		exit (-1);
 	}
 
-	new_node->key = (char *)malloc (strlen(key) + 1);
+	new_node->key = (char *)strdup(key);
 	if (new_node->key == NULL)
 	{
 		perror("Failed to malloc key !");
 		exit(-1);
 	}
 	strcpy(new_node->key, key);
-
-	//printf("===> INSERTING .%s. @ %u\n",key,hash);
 
 	new_node->value 	= value; 
 	new_node->next 		= h->list[hash]->head;
@@ -67,17 +65,12 @@ node* ht_search (ht *h, const char *key)
 	node *n;
 	unsigned int hash = hash_function (key);
 
-	//printf("Searching %p for %s @ %u\n",h,key,hash);
-
 	for (n = h->list[hash]->head; n ; n = n->next)
 	{
-		//printf("CMP .%s. = %s\n",key,n->key);
 		if (strcmp(key, n->key) == 0)
 		{
-			//printf("********************** Found !\n");
 			return n;
 		}
 	}
-	//printf("xxxxxxxxxxxxxxxxxxxxxx Not found !\n");
 	return NULL;
 }

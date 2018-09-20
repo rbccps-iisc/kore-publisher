@@ -1,6 +1,6 @@
 #include "kore-publisher.h"
 
-ht *hash_table = NULL;
+ht hash_table;
 
 typedef struct myconnection {
 	amqp_connection_state_t		*amqp_connection;
@@ -17,12 +17,9 @@ ep_index(struct http_request *req)
 int
 init (int state)
 {
-	if (worker->id > 0 && hash_table == NULL)
+	if (worker->id > 0)
 	{
-		if (! (hash_table = (ht *) malloc(sizeof(ht))) )
-			exit (-1);
-
-		ht_init (hash_table);
+		ht_init (&hash_table);
 	}
 
 	return KORE_RESULT_OK;
@@ -39,7 +36,7 @@ ep_publish (struct http_request *req)
 
 	amqp_basic_properties_t props;
 
-	char id_apikey[128];
+	char id_apikey[258];
 
 	amqp_socket_t 		*socket;
 	connection_t 		*connection;
@@ -76,13 +73,13 @@ ep_publish (struct http_request *req)
 			bad_request();
 	}
 
-	strlcpy(id_apikey,id,40);
+	strlcpy(id_apikey,id,128);
 	strlcat(id_apikey,":",1);
-	strlcat(id_apikey,apikey,40);
+	strlcat(id_apikey,apikey,128);
 
 	dprintf("Reached here %s : %p\n",id,hash_table);
 
-	if ((c = ht_search(hash_table,id_apikey)))
+	if ((c = ht_search(&hash_table,id_apikey)))
 	{
 		dprintf("---, got 1\n");
 		connection = c->value;
@@ -91,7 +88,6 @@ ep_publish (struct http_request *req)
 	}
 	else
 	{
-		dprintf("---, got 2\n");
 		connection = malloc(sizeof(connection_t));
 		if (connection == NULL)
 		{
@@ -160,7 +156,7 @@ reconnect:
 
 		dprintf("Got reply !\n");
 
-		ht_insert (hash_table, id_apikey, connection);
+		ht_insert (&hash_table, id_apikey, connection);
 	}
 
 	memset(&props, 0, sizeof props);

@@ -122,6 +122,7 @@ reconnect:
 
 			free(connection->amqp_connection);
 			free(connection);
+
 			internal_error();
 		}
 
@@ -133,20 +134,45 @@ reconnect:
 
 			free(connection->amqp_connection);
 			free(connection);
+
 			internal_error();
 		}
 
 		login_reply = amqp_login(*(connection->amqp_connection), "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, id, apikey);
-		if (login_reply.reply_type != AMQP_RESPONSE_NORMAL) {
+		if (login_reply.reply_type != AMQP_RESPONSE_NORMAL)
+		{
+			amqp_channel_close	(*(connection->amqp_connection), 1, AMQP_REPLY_SUCCESS);
+			amqp_connection_close	(*(connection->amqp_connection), AMQP_REPLY_SUCCESS);
+			amqp_destroy_connection	(*(connection->amqp_connection));
+
+			free(connection->amqp_connection);
+			free(connection);
+
 			forbidden();
 		}
 
-		if (! amqp_channel_open(*(connection->amqp_connection), 1)) {
+		if (! amqp_channel_open(*(connection->amqp_connection), 1))
+		{
+			amqp_channel_close	(*(connection->amqp_connection), 1, AMQP_REPLY_SUCCESS);
+			amqp_connection_close	(*(connection->amqp_connection), AMQP_REPLY_SUCCESS);
+			amqp_destroy_connection	(*(connection->amqp_connection));
+
+			free(connection->amqp_connection);
+			free(connection);
+
 			forbidden();
 		}
 
 		rpc_reply = amqp_get_rpc_reply(*(connection->amqp_connection));
-		if (rpc_reply.reply_type != AMQP_RESPONSE_NORMAL) {
+		if (rpc_reply.reply_type != AMQP_RESPONSE_NORMAL)
+		{
+			amqp_channel_close	(*(connection->amqp_connection), 1, AMQP_REPLY_SUCCESS);
+			amqp_connection_close	(*(connection->amqp_connection), AMQP_REPLY_SUCCESS);
+			amqp_destroy_connection	(*(connection->amqp_connection));
+
+			free(connection->amqp_connection);
+			free(connection);
+
 			forbidden();
 		}
 
@@ -169,9 +195,17 @@ reconnect:
 	)
 	{
 		pthread_mutex_unlock(&connection->mutex);
+
+		amqp_channel_close	(*(connection->amqp_connection), 1, AMQP_REPLY_SUCCESS);
+		amqp_connection_close	(*(connection->amqp_connection), AMQP_REPLY_SUCCESS);
+		amqp_destroy_connection	(*(connection->amqp_connection));
+
+		free(connection->amqp_connection);
+		free(connection);
+
 		forbidden();
 	}
-	pthread_mutex_unlock(&connection->mutex);
 
+	pthread_mutex_unlock(&connection->mutex);
 	ok202();
 }

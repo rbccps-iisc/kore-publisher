@@ -8,13 +8,6 @@ typedef struct myconnection {
 }connection_t; 
 
 int
-ep_index(struct http_request *req)
-{
-	http_response(req, 200, "index-page",10 );
-	return (KORE_RESULT_OK);
-}
-
-int
 init (int state)
 {
 	if (worker->id > 0)
@@ -190,7 +183,7 @@ reconnect:
                	 		amqp_cstring_bytes(topic),
 				0,
 				0,
-				NULL,
+				&props,
                			amqp_cstring_bytes(message))
 	)
 	{

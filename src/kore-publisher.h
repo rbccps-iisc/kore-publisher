@@ -54,7 +54,4 @@ int init (int state);
 	return (KORE_RESULT_OK);		\
 }
 
-
-int ep_index(struct http_request *);
 int ep_publish(struct http_request *);
-int ldap_login (const char *id, const char *apikey);

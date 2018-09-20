@@ -52,7 +52,6 @@ void ht_insert (ht *h, const char *key, void *value)
 		perror("Failed to malloc key !");
 		exit(-1);
 	}
-	strcpy(new_node->key, key);
 
 	new_node->value 	= value; 
 	new_node->next 		= h->list[hash]->head;

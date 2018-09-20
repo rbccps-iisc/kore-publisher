@@ -41,14 +41,11 @@ ep_publish (struct http_request *req)
 	amqp_socket_t 		*socket;
 	connection_t 		*connection;
 
-	node 		*c = NULL;
-
-	dprintf("PUBLISH\n");
+	node *c = NULL;
 
 	amqp_rpc_reply_t 	login_reply;
 	amqp_rpc_reply_t 	rpc_reply;
 
-	dprintf("-----\n");
 	dprintf("%d\n",http_request_header(req, "id", &id)); 
 	dprintf("%d\n",http_request_header(req, "apikey", &apikey)); 
 	dprintf("%d\n",http_request_header(req, "to", &exchange)); 
@@ -79,15 +76,14 @@ ep_publish (struct http_request *req)
 			bad_request();
 	}
 
+	/* TODO check with ldap */
+
 	strlcpy(id_apikey,id,128);
 	strlcat(id_apikey,":",1);
 	strlcat(id_apikey,apikey,128);
 
-	dprintf("Reached here %s : %p\n",id,hash_table);
-
 	if ((c = ht_search(&hash_table,id_apikey)))
 	{
-		dprintf("---, got 1\n");
 		connection = c->value;
 		/* TODO if connection->amqp_connection is closed, then:
 			 goto reconnect */
@@ -129,9 +125,8 @@ reconnect:
 			internal_error();
 		}
 
-		if (amqp_socket_open(socket, "broker", 5672)) {
-			dprintf("open failed \n");
-
+		if (amqp_socket_open(socket, "broker", 5672))
+		{
 			amqp_channel_close	(*(connection->amqp_connection), 1, AMQP_REPLY_SUCCESS);
 			amqp_connection_close	(*(connection->amqp_connection), AMQP_REPLY_SUCCESS);
 			amqp_destroy_connection	(*(connection->amqp_connection));
@@ -142,25 +137,18 @@ reconnect:
 		}
 
 		login_reply = amqp_login(*(connection->amqp_connection), "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, id, apikey);
-		dprintf("Got %d\n",login_reply.reply_type);
 		if (login_reply.reply_type != AMQP_RESPONSE_NORMAL) {
 			forbidden();
 		}
-
-		dprintf("Got login reply\n");
 
 		if (! amqp_channel_open(*(connection->amqp_connection), 1)) {
 			forbidden();
 		}
 
-		dprintf("Channel oopen\n");
-
 		rpc_reply = amqp_get_rpc_reply(*(connection->amqp_connection));
 		if (rpc_reply.reply_type != AMQP_RESPONSE_NORMAL) {
 			forbidden();
 		}
-
-		dprintf("Got reply !\n");
 
 		ht_insert (&hash_table, id_apikey, connection);
 	}
@@ -184,8 +172,6 @@ reconnect:
 		forbidden();
 	}
 	pthread_mutex_unlock(&connection->mutex);
-
-	dprintf("Published to %s : %s : %s\n\n",exchange,topic,message);
 
 	ok202();
 }
